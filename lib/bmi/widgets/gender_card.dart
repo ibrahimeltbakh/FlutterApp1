@@ -6,7 +6,8 @@ class GenderCard extends StatelessWidget {
   final bool isSelected;
   final VoidCallback onTap;
 
-  GenderCard({
+  const GenderCard({
+    super.key,
     required this.icon,
     required this.label,
     required this.isSelected,

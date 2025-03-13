@@ -5,7 +5,8 @@ class BMIResultPage extends StatelessWidget {
   final String gender;
   final double bmiResult;
 
-  BMIResultPage({
+  const BMIResultPage({
+    super.key,
     required this.age,
     required this.gender,
     required this.bmiResult,

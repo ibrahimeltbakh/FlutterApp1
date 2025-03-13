@@ -1,45 +1,87 @@
-// lib/messanger/ChatListPage.dart
 import 'package:flutter/material.dart';
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
 import 'ChatListWidget.dart';
 import 'chat_model.dart';
 
-// Define the Story data model
 class Story {
   final String name;
   final bool hasStory;
+  final String imageUrl;
 
-  Story({required this.name, this.hasStory = false});
+  Story({required this.name, this.hasStory = false, required this.imageUrl});
 }
 
-class ChatListPage extends StatelessWidget {
-  // Story data
-  final List<Story> stories = [
-    Story(name: 'Khaled', hasStory: true),
-    Story(name: 'Fatima', hasStory: false),
-    Story(name: 'Yousef', hasStory: true),
-    Story(name: 'Nora', hasStory: false),
-    Story(name: 'Omar', hasStory: true),
-  ];
+class ChatListPage extends StatefulWidget {
+  const ChatListPage({super.key});
 
-  // Chat data
-  final List<Chat> chats = [
-    Chat(
-      name: 'Khaled Mohammad',
-      status: 'Hello, I am Khaled',
-      time: '04:00 PM',
-    ),
-    Chat(name: 'Fatima Ahmad', status: 'How are you?', time: '03:30 PM'),
-    Chat(name: 'Yousef Ali', status: 'Let’s meet tomorrow', time: '02:15 PM'),
-    Chat(name: 'Nora Saeed', status: 'I sent you a photo', time: '01:00 PM'),
-    Chat(name: 'Omar Khaled', status: 'Thanks for the help', time: '12:30 PM'),
-    Chat(name: 'Sara Ahmed', status: 'Can we talk now?', time: '05:00 PM'),
-    Chat(name: 'Mahmoud Ziad', status: 'I’ll call you later', time: '04:30 PM'),
-    Chat(
-      name: 'Laila Hassan',
-      status: 'Check the group chat',
-      time: '03:45 PM',
-    ),
-  ];
+  @override
+  _ChatListPageState createState() => _ChatListPageState();
+}
+
+class _ChatListPageState extends State<ChatListPage> {
+  List<Chat> chats = [];
+  List<Story> stories = [];
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    fetchData();
+  }
+
+  Future<void> fetchData() async {
+    try {
+      final response = await http.get(
+        Uri.parse('https://dummyjson.com/products'),
+      );
+
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        final products = data['products'] as List;
+
+        setState(() {
+          chats =
+              products
+                  .map(
+                    (product) => Chat(
+                      name: product['title'] ?? 'Unnamed Product',
+                      status: product['description'] ?? 'No description',
+                      time:
+                          '${DateTime.now().hour}:${DateTime.now().minute} PM',
+                      imageUrl:
+                          product['thumbnail'] ??
+                          'https://via.placeholder.com/150',
+                    ),
+                  )
+                  .toList();
+
+          stories =
+              products
+                  .take(5)
+                  .map(
+                    (product) => Story(
+                      name: product['brand'] ?? 'Unknown Brand',
+                      hasStory:
+                          ((product['rating'] as num?)?.toDouble() ?? 0) > 4.5,
+                      imageUrl:
+                          product['thumbnail'] ??
+                          'https://via.placeholder.com/150',
+                    ),
+                  )
+                  .toList();
+
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      print('Error fetching data: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,75 +91,74 @@ class ChatListPage extends StatelessWidget {
           children: [
             CircleAvatar(
               backgroundColor: Colors.blue[100],
-              child: Icon(Icons.person, color: Colors.grey),
+              backgroundImage: CachedNetworkImageProvider(
+                chats.isNotEmpty
+                    ? chats[0].imageUrl
+                    : 'https://via.placeholder.com/150',
+              ),
             ),
             SizedBox(width: 8),
             Text('Chats'),
           ],
         ),
         actions: [
-          IconButton(
-            icon: Icon(Icons.camera_alt),
-            onPressed: () {
-              // Handle camera action
-            },
-          ),
-          IconButton(
-            icon: Icon(Icons.edit),
-            onPressed: () {
-              // Handle edit action
-            },
-          ),
+          IconButton(icon: Icon(Icons.camera_alt), onPressed: () {}),
+          IconButton(icon: Icon(Icons.edit), onPressed: () {}),
         ],
       ),
-      body: Column(
-        children: [
-          // Stories row
-          Container(
-            height: 100,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              itemCount: stories.length,
-              itemBuilder: (context, index) {
-                return Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: Column(
-                    children: [
-                      CircleAvatar(
-                        radius: 30,
-                        backgroundColor:
-                            stories[index].hasStory
-                                ? Colors.green[100]
-                                : Colors.blue[100],
-                        child: Icon(Icons.person, color: Colors.grey),
-                      ),
-                      SizedBox(height: 4),
-                      Text(stories[index].name, style: TextStyle(fontSize: 12)),
-                    ],
+      body:
+          isLoading
+              ? Center(child: CircularProgressIndicator())
+              : Column(
+                children: [
+                  SizedBox(
+                    height: 100,
+                    child: ListView.builder(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: stories.length,
+                      itemBuilder: (context, index) {
+                        return Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Column(
+                            children: [
+                              CircleAvatar(
+                                radius: 30,
+                                backgroundColor:
+                                    stories[index].hasStory
+                                        ? Colors.green[100]
+                                        : Colors.blue[100],
+                                backgroundImage: CachedNetworkImageProvider(
+                                  stories[index].imageUrl,
+                                ),
+                              ),
+                              SizedBox(height: 4),
+                              Text(
+                                stories[index].name,
+                                style: TextStyle(fontSize: 12),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                );
-              },
-            ),
-          ),
-          // Search bar
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              decoration: InputDecoration(
-                hintText: 'Search',
-                prefixIcon: Icon(Icons.search),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                filled: true,
-                fillColor: Colors.grey[200],
+                  Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: TextField(
+                      decoration: InputDecoration(
+                        hintText: 'Search',
+                        prefixIcon: Icon(Icons.search),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        filled: true,
+                        fillColor: Colors.grey[200],
+                      ),
+                    ),
+                  ),
+                  ChatListWidget(chats: chats),
+                ],
               ),
-            ),
-          ),
-          // Chat list
-          ChatListWidget(chats: chats),
-        ],
-      ),
     );
   }
 }

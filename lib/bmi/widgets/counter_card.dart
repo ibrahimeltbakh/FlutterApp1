@@ -6,7 +6,8 @@ class CounterCard extends StatelessWidget {
   final VoidCallback onIncrement;
   final VoidCallback onDecrement;
 
-  CounterCard({
+  const CounterCard({
+    super.key,
     required this.label,
     required this.value,
     required this.onIncrement,

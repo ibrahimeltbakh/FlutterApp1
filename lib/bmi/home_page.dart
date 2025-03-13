@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'bmi_calculator_page.dart';
 import 'bmi_result_page.dart';
-import 'widgets/gender_card.dart';
-import 'widgets/counter_card.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({super.key});
+
   @override
   _HomePageState createState() => _HomePageState();
 }
@@ -34,7 +34,7 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
-    List<Widget> _pages = <Widget>[
+    List<Widget> pages = <Widget>[
       BMICalculatorPage(
         onGenderSelected: (value) {
           setState(() {
@@ -66,7 +66,7 @@ class _HomePageState extends State<HomePage> {
     ];
 
     return Scaffold(
-      body: _pages[_selectedIndex],
+      body: pages[_selectedIndex],
       bottomNavigationBar: BottomNavigationBar(
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(

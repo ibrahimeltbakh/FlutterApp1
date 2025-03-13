@@ -13,7 +13,8 @@ class BMICalculatorPage extends StatelessWidget {
   final int age;
   final String selectedGender;
 
-  BMICalculatorPage({
+  const BMICalculatorPage({
+    super.key,
     required this.onGenderSelected,
     required this.onHeightChanged,
     required this.onWeightChanged,
@@ -93,11 +94,11 @@ class BMICalculatorPage extends StatelessWidget {
             Spacer(),
             ElevatedButton(
               onPressed: onCalculate,
-              child: Text('CALCULATE', style: TextStyle(color: Colors.white)),
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.teal,
                 minimumSize: Size(double.infinity, 50),
               ),
+              child: Text('CALCULATE', style: TextStyle(color: Colors.white)),
             ),
           ],
         ),
