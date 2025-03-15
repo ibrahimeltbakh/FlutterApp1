@@ -1,25 +1,25 @@
+import 'package:app1/messanger/ChatListPage.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 
-class LoginScreen extends StatefulWidget {
-  const LoginScreen({super.key});
+class RegisterScreen extends StatefulWidget {
+  const RegisterScreen({super.key});
 
   @override
-  _LoginScreenState createState() => _LoginScreenState();
+  _RegisterScreenState createState() => _RegisterScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _RegisterScreenState extends State<RegisterScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _passwordVisibility = true;
   String? _emailError;
   String? _passwordError;
+  bool _isLoading = false;
 
-  // Regular Expression for email validation
   final RegExp _emailRegex = RegExp(
     r'^[a-zA-Z0-9.a-zA-Z0-9.!#$%&’*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z]{2,})+$',
   );
-
-  // Regular Expression for password validation (at least 8 chars, 1 uppercase, 1 lowercase)
   final RegExp _passwordRegex = RegExp(r'^(?=.*[a-z])(?=.*[A-Z]).{8,}$');
 
   @override
@@ -31,7 +31,6 @@ class _LoginScreenState extends State<LoginScreen> {
 
   void _validateInputs() {
     setState(() {
-      // Validate Email
       if (_emailController.text.isEmpty) {
         _emailError = 'Email cannot be empty';
       } else if (!_emailRegex.hasMatch(_emailController.text)) {
@@ -40,7 +39,6 @@ class _LoginScreenState extends State<LoginScreen> {
         _emailError = null;
       }
 
-      // Validate Password
       if (_passwordController.text.isEmpty) {
         _passwordError = 'Password cannot be empty';
       } else if (!_passwordRegex.hasMatch(_passwordController.text)) {
@@ -52,12 +50,48 @@ class _LoginScreenState extends State<LoginScreen> {
     });
   }
 
+  Future<void> _register() async {
+    _validateInputs();
+    if (_emailError != null || _passwordError != null) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      UserCredential userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: _emailController.text,
+            password: _passwordController.text,
+          );
+      // Navigate to MessengerScreen on success
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (_) => const ChatListPage()),
+      );
+    } on FirebaseAuthException catch (e) {
+      setState(() {
+        if (e.code == 'email-already-in-use') {
+          _emailError = 'This email is already registered';
+        } else if (e.code == 'weak-password') {
+          _passwordError = 'Password is too weak';
+        } else {
+          _emailError = 'An error occurred: ${e.message}';
+        }
+      });
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: true,
       appBar: AppBar(
-        title: const Text('Login'),
+        title: const Text('Register'),
         backgroundColor: Colors.purple[700],
       ),
       body: SingleChildScrollView(
@@ -68,7 +102,7 @@ class _LoginScreenState extends State<LoginScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               const Text(
-                'User Login',
+                'Create Account',
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
@@ -79,12 +113,12 @@ class _LoginScreenState extends State<LoginScreen> {
                   labelText: 'Email',
                   prefixIcon: const Icon(Icons.email),
                   border: const OutlineInputBorder(),
-                  errorText: _emailError, // Display error message
+                  errorText: _emailError,
                 ),
                 keyboardType: TextInputType.emailAddress,
-                onChanged: (_) => _validateInputs(), // Validate on change
+                onChanged: (_) => _validateInputs(),
               ),
-              const SizedBox(height: 10), // Space for error message
+              const SizedBox(height: 10),
               TextField(
                 controller: _passwordController,
                 obscureText: _passwordVisibility,
@@ -104,19 +138,13 @@ class _LoginScreenState extends State<LoginScreen> {
                     },
                   ),
                   border: const OutlineInputBorder(),
-                  errorText: _passwordError, // Display error message
+                  errorText: _passwordError,
                 ),
-                onChanged: (_) => _validateInputs(), // Validate on change
+                onChanged: (_) => _validateInputs(),
               ),
               const SizedBox(height: 40),
               ElevatedButton(
-                onPressed:
-                    _emailError == null && _passwordError == null
-                        ? () {
-                          print('Email: ${_emailController.text}');
-                          print('Password: ${_passwordController.text}');
-                        }
-                        : null, // Disable button if validation fails
+                onPressed: _isLoading ? null : _register,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: Colors.blue,
                   shape: RoundedRectangleBorder(
@@ -124,15 +152,21 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   padding: const EdgeInsets.symmetric(vertical: 12.0),
                 ),
-                child: const Text('LOGIN', style: TextStyle(fontSize: 18)),
+                child:
+                    _isLoading
+                        ? const CircularProgressIndicator(color: Colors.white)
+                        : const Text(
+                          'Register',
+                          style: TextStyle(fontSize: 18),
+                        ),
               ),
               const SizedBox(height: 20),
               TextButton(
                 onPressed: () {
-                  print('Navigate to Register');
+                  Navigator.pop(context); // Back to LoginScreen
                 },
                 child: Text(
-                  "Don't have an account? Register Now",
+                  'Already have an account? Login',
                   textAlign: TextAlign.center,
                   style: TextStyle(color: Colors.purple[700]),
                 ),
