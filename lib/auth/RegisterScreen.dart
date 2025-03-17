@@ -163,7 +163,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
               const SizedBox(height: 20),
               TextButton(
                 onPressed: () {
-                  Navigator.pop(context); // Back to LoginScreen
+                  Navigator.pop(context);
                 },
                 child: Text(
                   'Already have an account? Login',

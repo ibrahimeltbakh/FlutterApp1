@@ -11,3 +11,11 @@ class Chat {
     required this.imageUrl,
   });
 }
+
+class Story {
+  final String name;
+  final bool hasStory;
+  final String imageUrl;
+
+  Story({required this.name, this.hasStory = false, required this.imageUrl});
+}

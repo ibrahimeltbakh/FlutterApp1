@@ -1,3 +1,4 @@
+import 'package:app1/messanger/ChatListPage.dart';
 import 'package:flutter/material.dart';
 import 'package:app1/auth/login_screen.dart';
 // import 'package:app1/home_screen.dart';
@@ -33,7 +34,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
       ),
       debugShowCheckedModeBanner: false,
-      home: LoginScreen(),
+      home: ChatListPage(),
     );
   }
 }
